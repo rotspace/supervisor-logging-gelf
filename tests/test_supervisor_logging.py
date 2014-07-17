@@ -87,7 +87,9 @@ class SupervisorLoggingTestCase(TestCase):
                 sleep(3)
 
                 pid = subprocess.check_output(
-                    ['supervisorctl', 'pid', 'messages']
+                    ['supervisorctl',
+                     '-c', os.path.join(mydir, 'supervisord.conf'),
+                     'pid', 'messages']
                 ).strip()
 
                 sleep(8)
