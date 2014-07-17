@@ -20,7 +20,10 @@ Test supervisor_logging.
 import os
 import re
 import socket
-import SocketServer as socketserver
+try:
+    import SocketServer as socketserver
+except ImportError:
+    import socketserver
 import subprocess
 import threading
 

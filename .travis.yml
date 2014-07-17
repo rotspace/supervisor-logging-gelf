@@ -18,4 +18,4 @@ deploy:
     server: https://pypi.python.org/pypi
     on:
         branch: release
-        python: 2.7
+        python: 3.4
