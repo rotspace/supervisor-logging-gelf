@@ -5,6 +5,7 @@ python:
     - "3.3"
     - "3.4"
 install:
+    - sudo apt-get install supervisor
     - pip install -r dev_requirements.txt
 script:
     - .githooks/pre-commit -f
