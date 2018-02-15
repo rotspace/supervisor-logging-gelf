@@ -31,7 +31,13 @@ import re
 
 import graypy
 
-level_match_expr = "[0-9]*\/[0-9]*\/[0-9]* [0-9]*:[0-9]*:[0-9]* ([A-Z]*) (.*)"
+# log format "D2018/02/15 10:31:07 orders.go:168: order callback was finished success order=1078 old_status=9 new_status=10 duration=1.857546628s"
+#
+# returns D
+#         filename.go
+#         linenumber
+#         tail data
+split_regex = re.compile("(D|E).* ([\w]+.go):([\d]{1,5}): (.*)")
 
 def get_headers(line):
     """
@@ -80,20 +86,34 @@ def split_msg_and_get_log_level(event_data, level_match):
 
     match_obj = level_match.match(event_data)
 
+    # D/E
     try:
-        if match_obj.group(1) in ["DEBUG", "INFO", "WARN", "WARNING", "ERROR", "CRITICAL", "FATAL"]:
-            level = eval("logging."+match_obj.group(1))
+        if match_obj.group(1) == "D":
+            level = logging.DEBUG
         else:
-            level = logging.INFO
+            level = logging.ERROR
     except IndexError:
-        level = logging.INFO
+        level = logging.DEBUG
 
+    # filename.go
     try:
-        body = match_obj.group(2)
+        filename = match_obj.group(2)
+    except IndexError:
+        filename = ""
+
+    # lineno
+    try:
+        lineno = match_obj.group(3)
+    except IndexError:
+        lineno = 0
+
+    # body
+    try:
+        body = match_obj.group(4)
     except IndexError:
         body = event_data
 
-    return level, body
+    return level, filename, lineno, body
 
 
 def main():
@@ -111,16 +131,15 @@ def main():
     sys.stderr.flush()
 
     handler = graypy.GELFHandler(host, port)
-    level_match = re.compile(level_match_expr)
 
     for event_headers, event_data in supervisor_events(sys.stdin, sys.stdout):
-        level, body = split_msg_and_get_log_level(event_data, level_match)
+        level, filename, lineno, body = split_msg_and_get_log_level(event_data, split_regex)
 
         event = logging.LogRecord(
             name=event_headers['processname'],
             level=level,
-            pathname=None,
-            lineno=0,
+            pathname=filename,
+            lineno=lineno,
             msg=body,
             args=(),
             exc_info=None,
