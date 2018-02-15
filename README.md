@@ -15,6 +15,11 @@ python setup.py install
 Usage
 -----
 
+Script allow to parse logs with next format:
+`Edatetime filename.go:1: log body`
+
+I.e. `D2018/02/15 10:31:07 orders.go:168: order callback was finished success order=1078 old_status=9 new_status=10 duration=1.857546628s`. This fork supports only `logging.DEBUG` and `logging.ERROR` levels (log line should begin with one the letters `D` or `E`).
+
 The Graylog server to send the events to is configured with the environment
 variables:
 
